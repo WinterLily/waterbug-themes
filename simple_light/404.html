@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>404 Not Found | Waterbug</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+</head>
+
+<body>
+    {{sidebar}}
+    <div id="content">
+        <h1 class="error-title">Page Not Found</h1>
+        <p style="text-align: center">
+            The page <code>{{path}}</code> could not be found.
+        </p>
+        <p style="text-align: center">
+            Please navigate to another page using the sidebar.
+        </p>
+
+        <div style="text-align: center; margin: 40px 0">
+            <svg width="150" height="150" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="#6b8afd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M8 15C8.5 16.5 10 17.5 12 17.5C14 17.5 15.5 16.5 16 15" stroke="#6b8afd" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M9 9H9.01" stroke="#6b8afd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M15 9H15.01" stroke="#6b8afd" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Set up accordions in the sidebar
+            document
+                .querySelectorAll(".accordion-heading")
+                .forEach((heading) => {
+                    heading.addEventListener("click", function (e) {
+                        // Prevent clicks on links inside headings from toggling the accordion
+                        if (e.target.tagName === "A") {
+                            return;
+                        }
+
+                        const section = this.closest(".accordion-section");
+                        const content =
+                            section.querySelector(".accordion-content");
+
+                        // Toggle the open class
+                        section.classList.toggle("open");
+
+                        // Use slideToggle-like animation
+                        if (section.classList.contains("open")) {
+                            content.style.display = "block";
+                            content.style.maxHeight =
+                                content.scrollHeight + "px";
+                            content.style.opacity = "1";
+                        } else {
+                            content.style.maxHeight = "0";
+                            content.style.opacity = "0";
+                            setTimeout(() => {
+                                if (!section.classList.contains("open")) {
+                                    content.style.display = "none";
+                                }
+                            }, 300); // Match the transition duration
+                        }
+                    });
+                });
+        });
+    </script>
+</body>
+
+</html>

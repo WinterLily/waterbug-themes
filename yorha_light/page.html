@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{title}} | Waterbug</title>
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+    {{sidebar}}
+    <div id="content">
+        <article class="markdown-body">{{content}}</article>
+    </div>
+
+    <script>
+        // Main initialization on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            // Handle Markdown task lists
+            setupTaskLists();
+
+            // Set up client-side navigation
+            setupAsyncNavigation();
+
+            // Set up accordions in the sidebar
+            setupAccordions();
+
+            // Highlight the active page
+            highlightActivePage();
+
+            // Add YoRHA terminal effect to headings
+            addTerminalEffect();
+        });
+
+        // Add YoRHA-style terminal effect to headings
+        function addTerminalEffect() {
+            document.querySelectorAll("h1, h2, h3").forEach((heading) => {
+                const originalText = heading.textContent;
+                heading.textContent = "";
+
+                const typeText = (text, index) => {
+                    if (index < text.length) {
+                        heading.textContent += text.charAt(index);
+                        setTimeout(() => typeText(text, index + 1), 30);
+                    }
+                };
+
+                setTimeout(() => typeText(originalText, 0), 100);
+            });
+        }
+
+        // Set up checkboxes for task lists
+        function setupTaskLists() {
+            document.querySelectorAll("ul li").forEach(function (li) {
+                if (
+                    li.textContent.startsWith("[ ] ") ||
+                    li.textContent.startsWith("[x] ")
+                ) {
+                    const text = li.innerHTML;
+                    const isChecked = text.startsWith("[x] ");
+                    li.innerHTML = `<input type="checkbox" disabled ${isChecked ? "checked" : ""}> ${text.substring(4)}`;
+                    li.classList.add("task-list-item");
+                }
+            });
+        }
+
+        // Set up async navigation
+        function setupAsyncNavigation() {
+            // Capture all clicks on navigation links
+            document.addEventListener("click", function (e) {
+                const link = e.target.closest(".async-link");
+                if (link) {
+                    e.preventDefault();
+                    const url = link.getAttribute("href");
+
+                    // Only navigate if it's a different page
+                    if (window.location.pathname !== url) {
+                        navigateTo(url);
+                    }
+                }
+            });
+
+            // Handle browser back/forward buttons
+            window.addEventListener("popstate", function (e) {
+                loadPageContent(window.location.pathname, false);
+            });
+        }
+
+        // Set up accordion functionality
+        function setupAccordions() {
+            document
+                .querySelectorAll(".accordion-heading")
+                .forEach((heading) => {
+                    heading.addEventListener("click", function (e) {
+                        // Prevent clicks on links inside headings from toggling the accordion
+                        if (e.target.tagName === "A") {
+                            return;
+                        }
+
+                        const section = this.closest(".accordion-section");
+                        const content =
+                            section.querySelector(".accordion-content");
+
+                        // Toggle the open class
+                        section.classList.toggle("open");
+
+                        // Use slideToggle-like animation
+                        if (section.classList.contains("open")) {
+                            content.style.display = "block";
+                            content.style.maxHeight =
+                                content.scrollHeight + "px";
+                            content.style.opacity = "1";
+                        } else {
+                            content.style.maxHeight = "0";
+                            content.style.opacity = "0";
+                            setTimeout(() => {
+                                if (!section.classList.contains("open")) {
+                                    content.style.display = "none";
+                                }
+                            }, 300); // Match the transition duration
+                        }
+                    });
+                });
+        }
+
+        // Highlight the currently active page
+        function highlightActivePage() {
+            const currentPath = window.location.pathname;
+
+            // Find and highlight the current page in the sidebar
+            document.querySelectorAll(".async-link").forEach((link) => {
+                const linkPath = link.getAttribute("href");
+
+                if (linkPath === currentPath) {
+                    // Mark this link as active
+                    link.classList.add("active");
+
+                    // Expand all parent accordion sections
+                    let parent = link.closest(".accordion-content");
+                    while (parent) {
+                        const parentSection =
+                            parent.closest(".accordion-section");
+                        if (parentSection) {
+                            parentSection.classList.add("open");
+                            parent.style.display = "block";
+                            parent.style.maxHeight =
+                                parent.scrollHeight + "px";
+                            parent.style.opacity = "1";
+                        }
+                        parent = parentSection
+                            ? parentSection.closest(".accordion-content")
+                            : null;
+                    }
+                }
+            });
+        }
+
+        // Navigate to a new page
+        function navigateTo(url) {
+            // Update browser history
+            history.pushState({}, "", url);
+
+            // Load the page content
+            loadPageContent(url);
+        }
+
+        // Load page content asynchronously
+        function loadPageContent(url, updateHistory = true) {
+            // Show loading indicator
+            document.getElementById("content").innerHTML =
+                '<div class="loading">Loading content</div>';
+
+            // Fetch the page content
+            fetch(url + "?ajax=true")
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Page not found");
+                    }
+                    return response.text();
+                })
+                .then((html) => {
+                    // Update the content area
+                    document.getElementById("content").innerHTML =
+                        '<article class="markdown-body">' +
+                        html +
+                        "</article>";
+
+                    // Update active state in sidebar
+                    updateActiveSidebarItem(url);
+
+                    // Update page title if possible
+                    const h1 = document.querySelector("#content h1");
+                    if (h1) {
+                        document.title = h1.textContent + " | Waterbug";
+                    }
+
+                    // Process any task lists in the new content
+                    setupTaskLists();
+
+                    // Add terminal effect to new headings
+                    addTerminalEffect();
+                })
+                .catch((error) => {
+                    console.error("Error loading content:", error);
+                    document.getElementById("content").innerHTML =
+                        '<div class="error">Error loading page content. YoRHA network connection unstable. Please try again.</div>';
+                });
+        }
+
+        // Update active sidebar item
+        function updateActiveSidebarItem(url) {
+            // Remove active class from all links
+            document.querySelectorAll(".async-link").forEach((link) => {
+                link.classList.remove("active");
+            });
+
+            // Add active class to matching link with smooth transition
+            document.querySelectorAll(".async-link").forEach((link) => {
+                if (link.getAttribute("href") === url) {
+                    link.classList.add("active");
+
+                    // Expand parent accordion sections smoothly
+                    let parent = link.closest(".accordion-content");
+                    while (parent) {
+                        const parentSection =
+                            parent.closest(".accordion-section");
+                        if (parentSection) {
+                            parentSection.classList.add("open");
+                            parent.style.display = "block";
+                            parent.style.maxHeight =
+                                parent.scrollHeight + "px";
+                            parent.style.opacity = "1";
+                        }
+                        parent = parentSection
+                            ? parentSection.closest(".accordion-content")
+                            : null;
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

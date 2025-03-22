@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{title}} | Waterbug</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        /* Additional styles for smoother transitions */
+        .accordion-content {
+            overflow: hidden;
+            max-height: 0;
+            transition:
+                max-height 0.3s ease-out,
+                opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .accordion-section.open>.accordion-content {
+            max-height: 1000px;
+            /* A large value that accommodates all content */
+            opacity: 1;
+        }
+
+        /* Update sidebar link transitions to be more cohesive */
+        #sidebar a {
+            transition: all 0.3s ease;
+        }
+
+        #sidebar a:hover,
+        #sidebar a.active {
+            transition: all 0.3s ease;
+        }
+
+        /* Loading indicator */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--accent-primary);
+            font-size: 1.2rem;
+        }
+
+        .loading:after {
+            content: ".";
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+
+            0%,
+            20% {
+                content: ".";
+            }
+
+            40% {
+                content: "..";
+            }
+
+            60% {
+                content: "...";
+            }
+
+            80%,
+            100% {
+                content: "";
+            }
+        }
+
+        /* Error message */
+        .error {
+            color: var(--accent-highlight);
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--accent-highlight);
+            border-radius: var(--border-radius);
+            background-color: rgba(255, 126, 103, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    {{sidebar}}
+    <div id="content">
+        <article class="markdown-body">{{content}}</article>
+    </div>
+
+    <script>
+        // Main initialization on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            // Handle Markdown task lists
+            setupTaskLists();
+
+            // Set up client-side navigation
+            setupAsyncNavigation();
+
+            // Set up accordions in the sidebar
+            setupAccordions();
+
+            // Highlight the active page
+            highlightActivePage();
+        });
+
+        // Set up checkboxes for task lists
+        function setupTaskLists() {
+            document.querySelectorAll("ul li").forEach(function (li) {
+                if (
+                    li.textContent.startsWith("[ ] ") ||
+                    li.textContent.startsWith("[x] ")
+                ) {
+                    const text = li.innerHTML;
+                    const isChecked = text.startsWith("[x] ");
+                    li.innerHTML = `<input type="checkbox" disabled ${isChecked ? "checked" : ""}> ${text.substring(4)}`;
+                    li.classList.add("task-list-item");
+                }
+            });
+        }
+
+        // Set up async navigation
+        function setupAsyncNavigation() {
+            // Capture all clicks on navigation links
+            document.addEventListener("click", function (e) {
+                const link = e.target.closest(".async-link");
+                if (link) {
+                    e.preventDefault();
+                    const url = link.getAttribute("href");
+
+                    // Only navigate if it's a different page
+                    if (window.location.pathname !== url) {
+                        navigateTo(url);
+                    }
+                }
+            });
+
+            // Handle browser back/forward buttons
+            window.addEventListener("popstate", function (e) {
+                loadPageContent(window.location.pathname, false);
+            });
+        }
+
+        // Set up accordion functionality
+        function setupAccordions() {
+            document
+                .querySelectorAll(".accordion-heading")
+                .forEach((heading) => {
+                    heading.addEventListener("click", function (e) {
+                        // Prevent clicks on links inside headings from toggling the accordion
+                        if (e.target.tagName === "A") {
+                            return;
+                        }
+
+                        const section = this.closest(".accordion-section");
+                        const content =
+                            section.querySelector(".accordion-content");
+
+                        // Toggle the open class
+                        section.classList.toggle("open");
+
+                        // Use slideToggle-like animation
+                        if (section.classList.contains("open")) {
+                            content.style.display = "block";
+                            content.style.maxHeight =
+                                content.scrollHeight + "px";
+                            content.style.opacity = "1";
+                        } else {
+                            content.style.maxHeight = "0";
+                            content.style.opacity = "0";
+                            setTimeout(() => {
+                                if (!section.classList.contains("open")) {
+                                    content.style.display = "none";
+                                }
+                            }, 300); // Match the transition duration
+                        }
+                    });
+                });
+        }
+
+        // Highlight the currently active page
+        function highlightActivePage() {
+            const currentPath = window.location.pathname;
+
+            // Find and highlight the current page in the sidebar
+            document.querySelectorAll(".async-link").forEach((link) => {
+                const linkPath = link.getAttribute("href");
+
+                if (linkPath === currentPath) {
+                    // Mark this link as active
+                    link.classList.add("active");
+
+                    // Expand all parent accordion sections
+                    let parent = link.closest(".accordion-content");
+                    while (parent) {
+                        const parentSection =
+                            parent.closest(".accordion-section");
+                        if (parentSection) {
+                            parentSection.classList.add("open");
+                            parent.style.display = "block";
+                            parent.style.maxHeight =
+                                parent.scrollHeight + "px";
+                            parent.style.opacity = "1";
+                        }
+                        parent = parentSection
+                            ? parentSection.closest(".accordion-content")
+                            : null;
+                    }
+                }
+            });
+        }
+
+        // Navigate to a new page
+        function navigateTo(url) {
+            // Update browser history
+            history.pushState({}, "", url);
+
+            // Load the page content
+            loadPageContent(url);
+        }
+
+        // Load page content asynchronously
+        function loadPageContent(url, updateHistory = true) {
+            // Show loading indicator
+            document.getElementById("content").innerHTML =
+                '<div class="loading">Loading content</div>';
+
+            // Fetch the page content
+            fetch(url + "?ajax=true")
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Page not found");
+                    }
+                    return response.text();
+                })
+                .then((html) => {
+                    // Update the content area
+                    document.getElementById("content").innerHTML =
+                        '<article class="markdown-body">' +
+                        html +
+                        "</article>";
+
+                    // Update active state in sidebar
+                    updateActiveSidebarItem(url);
+
+                    // Update page title if possible
+                    const h1 = document.querySelector("#content h1");
+                    if (h1) {
+                        document.title = h1.textContent + " | Waterbug";
+                    }
+
+                    // Process any task lists in the new content
+                    setupTaskLists();
+                })
+                .catch((error) => {
+                    console.error("Error loading content:", error);
+                    document.getElementById("content").innerHTML =
+                        '<div class="error">Error loading page content. Please try again.</div>';
+                });
+        }
+
+        // Update active sidebar item
+        function updateActiveSidebarItem(url) {
+            // Remove active class from all links
+            document.querySelectorAll(".async-link").forEach((link) => {
+                link.classList.remove("active");
+            });
+
+            // Add active class to matching link with smooth transition
+            document.querySelectorAll(".async-link").forEach((link) => {
+                if (link.getAttribute("href") === url) {
+                    link.classList.add("active");
+
+                    // Expand parent accordion sections smoothly
+                    let parent = link.closest(".accordion-content");
+                    while (parent) {
+                        const parentSection =
+                            parent.closest(".accordion-section");
+                        if (parentSection) {
+                            parentSection.classList.add("open");
+                            parent.style.display = "block";
+                            parent.style.maxHeight =
+                                parent.scrollHeight + "px";
+                            parent.style.opacity = "1";
+                        }
+                        parent = parentSection
+                            ? parentSection.closest(".accordion-content")
+                            : null;
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
