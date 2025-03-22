@@ -101,6 +101,7 @@ body::before {
     height: 100vh;
     box-shadow: 2px 0 10px var(--shadow-soft);
     display: flex;
+    list-style-type: none;
     flex-direction: column;
     transition: all 0.3s ease;
     z-index: 10;
@@ -168,12 +169,14 @@ body::before {
 }
 
 #sidebar ul ul {
+    list-style-type: none;
     padding-left: 15px;
     margin-top: 0.2rem;
     border-left: 2px solid var(--border-light);
 }
 
 #sidebar li {
+    list-style-type: none;
     margin: 10px 0;
     transition: all 0.2s ease;
 }
@@ -182,6 +185,7 @@ body::before {
 #sidebar a {
     color: var(--text-primary);
     text-decoration: none;
+    list-style-type: none;
     display: block;
     padding: 10px 12px;
     border-radius: 8px;
@@ -201,6 +205,7 @@ body::before {
     left: 12px;
     width: 0;
     height: 2px;
+    list-style-type: none;
     background-color: var(--accent-primary);
     transition: width 0.3s ease;
 }
@@ -544,25 +549,31 @@ ol {
     padding-left: 2em;
     margin-top: 0;
     margin-bottom: 16px;
+    list-style-type: none;
+
 }
 
 ul ul,
 ul ol,
 ol ol,
 ol ul {
+    list-style-type: none;
     margin-top: 0;
     margin-bottom: 0;
 }
 
 li {
+    list-style-type: none;
     word-wrap: break-all;
 }
 
 li+li {
+    list-style-type: none;
     margin-top: 0.25em;
 }
 
 li>p {
+    list-style-type: none;
     margin-top: 16px;
 }
 

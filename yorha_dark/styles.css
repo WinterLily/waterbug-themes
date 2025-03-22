@@ -250,6 +250,8 @@ p {
     transition: all 0.3s ease;
     z-index: 10;
     box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    list-style-type: none;
+
 }
 
 .sidebar-header,
@@ -309,17 +311,23 @@ p {
     list-style-type: none;
     padding-left: 0;
     margin-top: 0.5rem;
+    list-style-type: none;
+
 }
 
 #sidebar ul ul {
     padding-left: 15px;
     margin-top: 0.2rem;
     border-left: 2px solid var(--color-mid);
+    list-style-type: none;
+
 }
 
 #sidebar li {
     margin: 10px 0;
     transition: all 0.2s ease;
+    list-style-type: none;
+
 }
 
 #sidebar a {
@@ -332,6 +340,7 @@ p {
     border-bottom: none;
     position: relative;
     overflow: hidden;
+    list-style-type: none;
     margin: 2px 0;
 }
 
@@ -579,18 +588,22 @@ ul ol,
 ol ol,
 ol ul {
     margin-top: 0;
+    list-style-type: none;
     margin-bottom: 0;
 }
 
 li {
+    list-style-type: none;
     word-wrap: break-all;
 }
 
 li+li {
+    list-style-type: none;
     margin-top: 0.25em;
 }
 
 li>p {
+    list-style-type: none;
     margin-top: 16px;
 }
 
